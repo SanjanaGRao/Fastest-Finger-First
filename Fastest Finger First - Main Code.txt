@@ -1,0 +1,251 @@
+Main Code 
+
+//Implementation of Fastest Finger First 
+
+module FastestFingerFirst(player,display,decimal,control);
+
+input [3:0]player;
+output [7:0]display;
+output [3:0]control;
+output [3:0]decimal;
+
+wire w1,w2,w3,w4,w9,reset,reset1,en;
+wire [3:0]w5;
+wire [3:0]w7;
+wire [3:0]w8;
+
+not n1(w1,player[0]);
+not n2(w2,player[1]);
+not n3(w3,player[2]);
+not n4(w4,player[3]);
+
+Dlatch_4bit latch(w1,w2,w3,w4,en,w5[0],w5[1],w5[2],w5[3]);
+
+nand n5(w9,w5[0],w5[1],w5[2],w5[3]);
+or n6(reset,player[0],player[1],player[2],player[3]);
+nand n7(reset1,reset,w9);
+and n8(en,reset1,reset1);
+
+priority_encoder p_encoder(w7,w5);
+
+Hex_inverter invert(w7[0],w7[1],w7[2],w7[3],w8[0],w8[1],w8[2],w8[3]);
+
+Hex_7segment hexseven(w8,control,display);
+
+//Using and gates
+
+and a1(decimal[0],w8[0],w8[0]);
+and a2(decimal[1],w8[1],w8[1]);
+and a3(decimal[2],w8[2],w8[2]);
+and a4(decimal[3],w8[3],w8[3]);
+
+initial
+begin
+$monitor("%b\t%b\t\t%d\t",player,display,decimal);
+end
+endmodule
+
+
+
+
+D - Latch bit
+
+//4 bit Bistable D latch
+
+module Dlatch_4bit(d1,d2,d3,d4,en,q1,q2,q3,q4);
+
+input d1,d2,d3,d4,en;
+output q1,q2,q3,q4;
+reg q1,q2,q3,q4;
+
+//Latch 1
+always @(en,d1)
+if(en)
+begin
+q1<=d1;
+end
+//Latch 2
+always @(en,d2)
+if(en)
+begin
+q2<=d2;
+end
+//Latch 3
+always @(en,d3)
+if(en)
+begin
+q3<=d3;
+end
+//Latch 4
+always @(en,d4)
+if(en)
+begin
+q4<=d4;
+end
+
+endmodule
+
+
+
+Priority Encoder
+
+//Priority Encoder
+
+module priority_encoder(binary_out,encoder_in);
+
+output [3:0]binary_out;
+input [3:0]encoder_in;
+
+reg [3:0]binary_out;
+
+always @(encoder_in)
+
+begin
+binary_out[0]=1'b1;
+binary_out[1]=1'b1;
+binary_out[2]=1'b1;
+binary_out[3]=1'b1;
+
+if (encoder_in[0]==1'b0)
+ begin
+binary_out[0]=1'b0;
+binary_out[1]=1'b1;
+binary_out[2]=1'b1;
+binary_out[3]=1'b1;
+ end
+
+if (encoder_in[1]==1'b0)
+ begin
+binary_out[0]=1'b1;
+binary_out[1]=1'b0;
+binary_out[2]=1'b1;
+binary_out[3]=1'b1;
+ end
+
+if (encoder_in[2]==1'b0)
+ begin
+binary_out[0]=1'b0;
+binary_out[1]=1'b0;
+binary_out[2]=1'b1;
+binary_out[3]=1'b1;
+ end
+ 
+ if (encoder_in[3]==1'b0)
+ begin
+binary_out[0]=1'b1;
+binary_out[1]=1'b1;
+binary_out[2]=1'b0;
+binary_out[3]=1'b1;
+ end
+
+end
+
+endmodule
+
+
+
+Hex Inverter
+
+//Hex inverter
+module Hex_inverter(a,b,c,d,w,x,y,z);
+
+input a,b,c,d;
+output w,x,y,z;
+
+not n1(w,a);
+not n2(x,b);
+not n3(y,c);
+not n4(z,d);
+
+endmodule
+
+
+
+
+
+7 Segment Display
+
+//hex - 7segment 
+module Hex_7segment(hex,control,seven_segment);
+
+input [3:0]hex;
+output[7:0]seven_segment;
+reg [7:0]seven_segment;
+output reg [3:0]control;
+
+initial
+begin
+seven_segment=8'b11111100;
+control=4'b1110;
+end
+
+always @*
+begin
+control=4'b1101;
+case(hex)
+
+4'b0000:begin seven_segment=8'b11111100;
+        end
+4'b0001:begin seven_segment=8'b01100000;
+        end		  
+4'b0010:begin seven_segment=8'b11011010;
+        end
+4'b0011:begin seven_segment=8'b11110010;
+        end
+4'b0100:begin seven_segment=8'b01100110;
+        end
+4'b0101:begin seven_segment=8'b10110110;
+        end
+4'b0110:begin seven_segment=8'b10111110;
+        end
+4'b0111:begin seven_segment=8'b11100000;
+        end
+4'b1000:begin seven_segment=8'b11111110;
+        end
+4'b1001:begin seven_segment=8'b11110110;
+        end
+endcase
+end		  
+endmodule
+
+
+
+
+.UCF file
+
+//FRC 1
+NET "player[0]" LOC = "p80";
+NET "player[1]" LOC = "p81";
+NET "player[2]" LOC = "p82";
+NET "player[3]" LOC = "p84";
+
+//FRC 10
+NET "display[7]" LOC = "p7";
+NET "display[6]" LOC = "p8";
+NET "display[5]" LOC = "p9";
+NET "display[4]" LOC = "p11";
+NET "display[3]" LOC = "p10";
+NET "display[2]" LOC = "p35";
+NET "display[1]" LOC = "p41";
+NET "display[0]" LOC = "p43";
+
+//Control
+NET "control[0]" LOC = "p44";
+NET "control[1]" LOC = "p45";
+NET "control[2]" LOC = "p58";
+NET "control[3]" LOC = "p61";
+
+
+//FRC2
+NET "decimal[3]" LOC = "p93";
+NET "decimal[2]" LOC = "p94";
+NET "decimal[1]" LOC = "p95";
+NET "decimal[0]" LOC = "p97";
+
+
+
+
+
+
+
+
